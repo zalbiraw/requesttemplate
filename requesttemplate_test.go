@@ -1,4 +1,4 @@
-package requesttemplate
+package requesttemplate_test
 
 import (
 	"bytes"
@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/zalbiraw/requesttemplate"
 )
 
 func TestServeHTTP_TemplatePrependStaticValue(t *testing.T) {
 	// This template prepends "hello, " to the nested .user.message string
 	tmpl := `{"message": "hello, {{ .user.message }}"}`
 
-	cfg := CreateConfig()
+	cfg := requesttemplate.CreateConfig()
 	cfg.Template = tmpl
 
 	ctx := context.Background()
@@ -21,7 +23,7 @@ func TestServeHTTP_TemplatePrependStaticValue(t *testing.T) {
 		// No-op: nothing needed for the next handler in this test
 	})
 
-	handler, err := New(ctx, next, cfg, "template-prepend-plugin")
+	handler, err := requesttemplate.New(ctx, next, cfg, "template-prepend-plugin")
 	if err != nil {
 		t.Fatal(err)
 	}
