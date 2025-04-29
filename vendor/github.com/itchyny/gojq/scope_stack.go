@@ -17,9 +17,13 @@ func newScopeStack() *scopeStack {
 
 func (s *scopeStack) push(v scope) {
 	b := scopeBlock{v, s.index}
-	s.index = max(s.index, s.limit) + 1
-	if s.index < len(s.data) {
-		s.data[s.index] = b
+	i := s.index + 1
+	if i <= s.limit {
+		i = s.limit + 1
+	}
+	s.index = i
+	if i < len(s.data) {
+		s.data[i] = b
 	} else {
 		s.data = append(s.data, b)
 	}

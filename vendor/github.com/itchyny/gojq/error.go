@@ -85,7 +85,7 @@ func (err *expectedStartEndError) Error() string {
 
 type lengthMismatchError struct{}
 
-func (*lengthMismatchError) Error() string {
+func (err *lengthMismatchError) Error() string {
 	return "length mismatch"
 }
 
@@ -180,28 +180,26 @@ func (err *exitCodeError) ExitCode() int {
 	return err.code
 }
 
-// HaltError is an error emitted by halt and halt_error functions.
-// It implements [ValueError], and if the value is nil, discard the error
-// and stop the iteration. Consider a query like "1, halt, 2";
-// the first value is 1, and the second value is a HaltError with nil value.
-// You might think the iterator should not emit an error this case, but it
-// should so that we can recognize the halt error to stop the outer loop
-// of iterating input values; echo 1 2 3 | gojq "., halt".
-type HaltError exitCodeError
+type haltError exitCodeError
 
-func (err *HaltError) Error() string {
-	return "halt " + (*exitCodeError)(err).Error()
+func (err *haltError) Error() string {
+	return (*exitCodeError)(err).Error()
 }
 
-// Value returns the value of the error. This implements [ValueError],
-// but halt error is not catchable by try-catch.
-func (err *HaltError) Value() any {
+func (err *haltError) IsEmptyError() bool {
+	return err.value == nil
+}
+
+func (err *haltError) Value() any {
 	return (*exitCodeError)(err).Value()
 }
 
-// ExitCode returns the exit code of the error.
-func (err *HaltError) ExitCode() int {
+func (err *haltError) ExitCode() int {
 	return (*exitCodeError)(err).ExitCode()
+}
+
+func (err *haltError) IsHaltError() bool {
+	return true
 }
 
 type flattenDepthError struct {
@@ -222,7 +220,7 @@ func (err *joinTypeError) Error() string {
 
 type timeArrayError struct{}
 
-func (*timeArrayError) Error() string {
+func (err *timeArrayError) Error() string {
 	return "expected an array of 8 numbers"
 }
 
@@ -279,7 +277,7 @@ func (err *formatRowError) Error() string {
 
 type tooManyVariableValuesError struct{}
 
-func (*tooManyVariableValuesError) Error() string {
+func (err *tooManyVariableValuesError) Error() string {
 	return "too many variable values provided"
 }
 
@@ -316,7 +314,7 @@ func (err *breakError) Error() string {
 	return "label not defined: " + err.n
 }
 
-func (*breakError) ExitCode() int {
+func (err *breakError) ExitCode() int {
 	return 3
 }
 

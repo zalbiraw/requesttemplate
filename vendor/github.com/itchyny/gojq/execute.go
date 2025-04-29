@@ -66,9 +66,7 @@ loop:
 					err = &objectKeyNotStringError{k}
 					break loop
 				}
-				if _, ok := m[s]; !ok {
-					m[s] = v
-				}
+				m[s] = v
 			}
 			env.push(m)
 		case opappend:
@@ -92,7 +90,7 @@ loop:
 				case *tryEndError:
 					err = e.err
 					break loop
-				case *breakError, *HaltError:
+				case *breakError, *haltError:
 					break loop
 				case ValueError:
 					env.pop()

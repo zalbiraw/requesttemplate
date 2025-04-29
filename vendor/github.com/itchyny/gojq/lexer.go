@@ -235,8 +235,7 @@ func (l *lexer) Lex(lval *yySymType) (tokenType int) {
 	default:
 		if ch >= utf8.RuneSelf {
 			r, size := utf8.DecodeRuneInString(l.source[l.offset-1:])
-			// -1 to adjust for first byte consumed by next()
-			l.offset += size - 1
+			l.offset += size
 			l.token = string(r)
 		}
 	}
@@ -522,26 +521,29 @@ func quoteAndEscape(src string, quote bool, controls int) []byte {
 	return buf
 }
 
-// ParseError represents a description of a query parsing error.
-type ParseError struct {
-	Offset    int    // the error occurred after reading Offset bytes
-	Token     string // the Token that caused the error (may be empty)
+type parseError struct {
+	offset    int
+	token     string
 	tokenType int
 }
 
-func (err *ParseError) Error() string {
+func (err *parseError) Error() string {
 	switch err.tokenType {
 	case eof:
 		return "unexpected EOF"
 	case tokInvalid:
-		return "invalid token " + jsonMarshal(err.Token)
+		return "invalid token " + jsonMarshal(err.token)
 	case tokInvalidEscapeSequence:
-		return `invalid escape sequence "` + err.Token + `" in string literal`
+		return `invalid escape sequence "` + err.token + `" in string literal`
 	case tokUnterminatedString:
 		return "unterminated string literal"
 	default:
-		return "unexpected token " + jsonMarshal(err.Token)
+		return "unexpected token " + jsonMarshal(err.token)
 	}
+}
+
+func (err *parseError) Token() (string, int) {
+	return err.token, err.offset
 }
 
 func (l *lexer) Error(string) {
@@ -549,7 +551,7 @@ func (l *lexer) Error(string) {
 	if l.tokenType != eof && l.tokenType < utf8.RuneSelf {
 		token = string(rune(l.tokenType))
 	}
-	l.err = &ParseError{offset, token, l.tokenType}
+	l.err = &parseError{offset, token, l.tokenType}
 }
 
 func isWhite(ch byte) bool {
