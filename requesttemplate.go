@@ -2,7 +2,6 @@
 package requesttemplate
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -62,7 +61,7 @@ func (a *RequestTemplate) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				http.Error(rw, "Invalid jq filter: "+err.Error(), http.StatusBadRequest)
 				return
 			}
-			iter := query.Run(jsonData)
+			iter := query.RunWithContext(req.Context(), jsonData)
 			// Only take the first result
 			v, ok := iter.Next()
 			if !ok {
@@ -76,12 +75,14 @@ func (a *RequestTemplate) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			jsonData = v
 		}
 		// Marshal the result back to JSON
-		bodyBytes, _ = json.Marshal(jsonData)
+		bodyBytes, err := json.Marshal(jsonData)
+		if err != nil {
+			http.Error(rw, "Failed to marshal JSON: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rw.Write(bodyBytes)
+		return
 	}
-
-	// Replace the request body with the updated body
-	req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-	req.ContentLength = int64(len(bodyBytes))
 
 	a.next.ServeHTTP(rw, req)
 }
