@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,11 +17,8 @@ func TestServeHTTP_JQPrependStaticValue(t *testing.T) {
 	cfg.Commands = []string{jqCmd}
 
 	ctx := context.Background()
-	var gotBody []byte
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		if req.Body != nil {
-			gotBody, _ = io.ReadAll(req.Body)
-		}
+		// No-op: nothing needed for the next handler in this test
 	})
 
 	handler, err := New(ctx, next, cfg, "jq-prepend-plugin")
@@ -38,6 +34,8 @@ func TestServeHTTP_JQPrependStaticValue(t *testing.T) {
 		t.Fatal(err)
 	}
 	handler.ServeHTTP(recorder, req)
+
+	gotBody := recorder.Body.Bytes()
 
 	// Expect the body to have the prepended value
 	var got map[string]any

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/itchyny/gojq"
 )
@@ -84,7 +85,6 @@ func (a *RequestTemplate) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if _, err := rw.Write(bodyBytes); err != nil {
-		// Optionally log the error, but cannot send another HTTP error at this point
+		os.Stderr.WriteString("Failed to write response: " + err.Error())
 	}
-	return
 }
