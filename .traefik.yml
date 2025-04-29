@@ -7,5 +7,4 @@ import: github.com/zalbiraw/requesttemplate
 summary: 'A Traefik Go plugin to allow the user to template requests'
 
 testData:
-  template: |
-    {"message": "hello, {{ .user.message }}"}
+  template: '{"message": "hello, {{ .user.message }}"}'
