@@ -1,12 +1,11 @@
-displayName: Demo Plugin
+displayName: Request Template
 type: middleware
 iconPath: .assets/icon.png
 
-import: github.com/traefik/plugindemo
+import: github.com/zalbiraw/requesttemplate
 
-summary: '[Demo] Add Request Header'
+summary: 'Allows user to define a json template for the request'
 
 testData:
-  Headers:
-    X-Demo: test
-    X-URL: '{{URL}}'
+  commands: 
+    - .user.message |= "hello, " + .
