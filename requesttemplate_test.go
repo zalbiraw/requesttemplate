@@ -44,7 +44,14 @@ func TestServeHTTP_JQPrependStaticValue(t *testing.T) {
 	if err := json.Unmarshal(gotBody, &got); err != nil {
 		t.Fatalf("failed to unmarshal body: %v", err)
 	}
-	msg := got["user"].(map[string]any)["message"].(string)
+	userMap, ok := got["user"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected user to be a map[string]any")
+	}
+	msg, ok := userMap["message"].(string)
+	if !ok {
+		t.Fatalf("expected message to be a string")
+	}
 	if msg != "hello, world" {
 		t.Errorf("expected message to be 'hello, world', got '%s'", msg)
 	}
