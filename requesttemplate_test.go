@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,15 +13,13 @@ import (
 )
 
 func TestServeHTTP_TemplatePrependStaticValue(t *testing.T) {
-	// This template prepends "hello, " to the nested .user.message string
-	tmpl := `{"message": "hello, {{ .user.message }}"}`
-
 	cfg := requesttemplate.CreateConfig()
-	cfg.Template = tmpl
+	cfg.Template = `{"message": "hello, {{ .user.message }}"}`
 
 	ctx := context.Background()
+	var mutatedReq *http.Request
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		// No-op: nothing needed for the next handler in this test
+		mutatedReq = req
 	})
 
 	handler, err := requesttemplate.New(ctx, next, cfg, "template-prepend-plugin")
@@ -37,12 +36,16 @@ func TestServeHTTP_TemplatePrependStaticValue(t *testing.T) {
 	}
 	handler.ServeHTTP(recorder, req)
 
-	gotBody := recorder.Body.Bytes()
+	// Assert mutated request if relevant
+	if mutatedReq == nil {
+		t.Fatalf("next handler was not called; recorder code: %d, body: %s", recorder.Code, recorder.Body.String())
+	}
 
-	// Expect the body to have the prepended value
+	// Assert on the response body
+	gotBody, _ := io.ReadAll(mutatedReq.Body)
 	var got map[string]any
 	if err := json.Unmarshal(gotBody, &got); err != nil {
-		t.Fatalf("failed to unmarshal body: %v", err)
+		t.Fatalf("failed to unmarshal body: %v. Raw body: %s", err, string(gotBody))
 	}
 	msg, ok := got["message"].(string)
 	if !ok {

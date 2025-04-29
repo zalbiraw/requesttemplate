@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"text/template"
 )
 
@@ -71,9 +72,8 @@ func (a *RequestTemplate) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rw.Header().Set("Content-Type", "application/json")
-	_, err = rw.Write(buf.Bytes())
-	if err != nil {
-		return
-	}
+	req.Body = io.NopCloser(strings.NewReader(buf.String()))
+	req.ContentLength = int64(buf.Len())
+
+	a.next.ServeHTTP(rw, req)
 }
