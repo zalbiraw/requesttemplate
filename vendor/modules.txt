@@ -1,6 +1,6 @@
 # github.com/itchyny/gojq v0.12.14
 ## explicit; go 1.19
 github.com/itchyny/gojq
-# github.com/itchyny/timefmt-go v0.1.6
-## explicit; go 1.20
+# github.com/itchyny/timefmt-go v0.1.5
+## explicit; go 1.17
 github.com/itchyny/timefmt-go
