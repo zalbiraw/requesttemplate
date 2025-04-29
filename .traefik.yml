@@ -4,7 +4,7 @@ iconPath: .assets/icon.png
 
 import: github.com/zalbiraw/requesttemplate
 
-summary: 'Allows user to define a Go template for the request body.'
+summary: 'A Traefik Go plugin to allow the user to template requests'
 
 testData:
   template: |

@@ -1,10 +1,10 @@
 # Request Template Plugin
 
-A Traefik plugin that transforms HTTP JSON request bodies using [jq](https://stedolan.github.io/jq/) filters. This allows you to flexibly modify, map, or validate incoming requests before they reach your backend service.
+A Traefik plugin that transforms HTTP JSON request bodies using a [Go text/template](https://pkg.go.dev/text/template) filter. This allows you to flexibly modify, map, or validate incoming requests before they reach your backend service.
 
 ## Features
-- Apply one or more jq commands to the incoming JSON request body
-- Chain transformations: output of one command feeds into the next
+- Apply a Go text/template transformation to the incoming JSON request body
+- Easily map or rewrite fields before forwarding the request
 
 ## Installation & Enabling
 
@@ -34,17 +34,15 @@ http:
   middlewares:
     requesttemplate:
       plugin:
-        commands:
-          - .user.message |= "hello, " + .
-          - .timestamp = now
+        template: '{"message": "hello, {{ .user.message }}"}'
 ```
 
 ## How It Works
 
 1. The plugin reads the incoming request body (expects JSON).
-2. Each jq command in the `commands` list is applied in order.
-   - If any command fails, a 400 error is returned.
-   - If all succeed, the final result is marshaled and sent as the response body.
+2. The Go template in `template` is rendered using the parsed JSON as data.
+   - If the template fails, a 400 error is returned.
+   - If successful, the result is sent as the new request body.
 3. If the request body is empty or not JSON, the request passes through unchanged.
 
 ## Example
@@ -58,21 +56,20 @@ http:
 
 **Config:**
 ```yaml
-commands:
-  - .user.message |= "hello, " + .
+template: '{"message": "hello, {{ .user.message }}"}'
 ```
 
 **Output:**
 ```json
 {
-  "user": { "message": "hello, world" }
+  "message": "hello, world"
 }
 ```
 
 ## Notes
 - Only JSON request bodies are processed.
-- The plugin uses [gojq](https://github.com/itchyny/gojq) for jq support.
-- Errors in JSON or jq filter result in a 400 Bad Request response.
+- The plugin uses Go's [text/template](https://pkg.go.dev/text/template) for templating.
+- Errors in JSON or template rendering result in a 400 Bad Request response.
 
 ---
 
