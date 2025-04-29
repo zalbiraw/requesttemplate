@@ -4,8 +4,8 @@ iconPath: .assets/icon.png
 
 import: github.com/zalbiraw/requesttemplate
 
-summary: 'Allows user to define a json template for the request'
+summary: 'Allows user to define a Go template for the request body.'
 
 testData:
-  commands: 
-    - .user.message |= "hello, " + .
+  template: |
+    {"message": "hello, {{ .user.message }}"}
